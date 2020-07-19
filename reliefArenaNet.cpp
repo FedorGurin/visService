@@ -105,7 +105,7 @@ bool ReliefArenaNet::sendRequest()
     //! обнуление буфера
     memset((void*)buf,0,sizeof(buf));
 
-    hRelief.id          = 1;
+    hRelief.id          = 0;
     hRelief.latitude    = kin->fi_geo * radToGrad;;
     hRelief.longitude   = kin->lam_geo * radToGrad;
 

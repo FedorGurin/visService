@@ -80,17 +80,12 @@ VisIndicNet::VisIndicNet(uint32_t idClass,TSettingVisIndic set_):ICalculateEleme
     bindTo(new TEventAddrStat(ID_MFI141_L_PIL,   (uintptr_t)&mfi_1,    TEventAddrStat::GET_POINTER,this));
     bindTo(new TEventAddrStat(ID_MFI141_R_PIL,   (uintptr_t)&mfi_2,    TEventAddrStat::GET_POINTER,this));
 
-    UdpSocket *tempSocket = 0;
-    for(int i = 0; i < set.port.size(); i++)
-    {
-        tempSocket = new UdpSocket;
-        if(set.ipVis.empty() == false)
-            tempSocket->init(set.port[i], set.ipVis[i]);
-        else
-            tempSocket->init(set.port[i], set.ipStr[i]);
+    udpSocketMFI = new UdpSocket;
+    udpSocketMFI->init(set.portMFI1, set.ipVisSKI);
 
-        udpSockets.push_back(tempSocket);
-    }   
+    udpSocketIM = new UdpSocket;
+    udpSocketIM->init(set.portIM, set.ipVisSKI);
+
     //! указыем частоту
     setFreq(ICalculateElement::Hz50);
     setStart();
@@ -99,14 +94,14 @@ void VisIndicNet::init()
 {
     ICalculateElement::init();
 }
-bool VisIndicNet::sendMfi_2()
+bool VisIndicNet::sendMfi_1()
 {
     DataToStream out(buf1,sizeof (buf1));
 
     out<<(uint32_t)htonl(1);
 
     DataToStream outPacket(buf2,sizeof(buf2));
-    outPacket<<(uint32_t)htonl(2);
+    outPacket<<(uint32_t)htonl(1);
     outPacket<<(uint16_t)htons(70);
     outPacket<<(uint32_t)htonl(0xFF454545);
     outPacket<<(uint16_t)htons(1);
@@ -120,85 +115,45 @@ bool VisIndicNet::sendMfi_2()
     ByteArray arrayPacket((uint8_t*) outPacket.buf,outPacket.index);
     out<<arrayPacket;
 
-    for(size_t i = 0; i<udpSockets.size(); i++)
-    {
-           udpSockets[i]->sendTo(out.buf,out.index);
-    }
+    udpSocketMFI->sendTo(out.buf,out.index);
+    //for(size_t i = 0; i<udpSockets.size(); i++)
+    //{
+          // udpSockets[i]->sendTo(out.buf,out.index);
+    //}
 
     return true;
 
-
-
 }
-bool VisIndicNet::sendMfi_1()
+bool VisIndicNet::sendIM_1()
 {
-//    if(kin == 0)
-//        return false;
-//    //! обнуление буфера
-//    memset((void*)buf,0,sizeof(buf));
+	 DataToStream out(buf1,sizeof (buf1));
 
-//    camera.latitude     = (kin->fi_geo  * radToGrad);
-//    camera.longitude    = (kin->lam_geo * radToGrad);
-//    camera.altitude     = kin->c_g.y;
-//    camera.head         =  psiToKurs(kin->psi_cam) * radToGrad;
-//    camera.pitch        = (kin->tan_cam   * radToGrad);
-//    camera.roll         = (kin->gamma_cam * radToGrad);
-//    camera.vx           = (kin->vg.z);
-//    camera.vy           = (kin->vg.x);
-//    camera.vz           = (kin->vg.y);
-    
-//    sizeBuf = 0;
-   
-//    pos.latitude = camera.latitude ;
-//    pos.longitude= camera.longitude;
-//    pos.altitude =  camera.altitude;
-//    pos.head = camera.head;
-//    pos.pitch = camera.pitch;
-//    pos.roll = camera.roll;
-//    pos.vx = camera.vx;
-//    pos.vy = camera.vy;
-//    pos.vz = camera.vz;
-    
-//    rot.b0.w0.Rpm_screw = 900;
-//    if(rpm100 != 0)
-//    	rot.b0.w0.Rpm_screw *= (*rpm100)/100.0;
-//    rot.b0.Height = kin->hRelief;
-//    rot.b0.w0.Light_on = 0;
-//    rot.b0.w0.Dustiness = 1;
-//    int32_t count = ntohl(1);
-//   uint32_t *header = (uint32_t *)(&buf[0]);
-//   *header = ntohl((uint32_t)_GIS_MAP3D_SET_CAMERA_);
-//   memcpy((void*)&(buf[sizeof(uint32_t)]),(void*)&camera,sizeof(camera));
-//   memcpy((void*)&(buf[sizeof(uint32_t)+ sizeof(camera)]),(void*)&count,sizeof(int32_t));
-//   memcpy((void*)&(buf[sizeof(uint32_t)+ sizeof(camera) + sizeof(int32_t)]),(void*)&head,sizeof(head));
-//   memcpy((void*)&(buf[sizeof(uint32_t)+ sizeof(camera) + sizeof(int32_t) + sizeof(head)]),(void*)&pos,sizeof(pos));
-     
-//   sizeBuf = sizeof(uint32_t) + sizeof(camera)+ sizeof(int32_t) + sizeof(head) + sizeof(pos);
-  
-//   for(int i = 0; i<udpSockets.size(); i++)
-//   {
-//       udpSockets[i]->sendTo(buf,sizeBuf);
-//   }
-   
-//   *header = ntohl((uint32_t)_GIS_MAP3D_SET_OBJECT_ANIMATION_);
-//   count = htonl((int32_t)sizeof(rot));
-//   memcpy((void*)&(buf[sizeof(uint32_t)]),(void*)&head,sizeof(head));
-//   memcpy((void*)&(buf[sizeof(uint32_t) + sizeof(head)]),(void*)&count,sizeof(int32_t));
-//   memcpy((void*)&(buf[sizeof(uint32_t) + sizeof(head) + sizeof(int32_t)]),(void*)&rot,sizeof(rot));
+	 out<<(uint32_t)htonl(1);
 
-//   sizeBuf = sizeof(uint32_t) + sizeof(head)+ sizeof(int32_t) + sizeof(rot);
+	 DataToStream outPacket(buf2,sizeof(buf2));
+	 outPacket<<(uint32_t)htonl(2);
+	 outPacket<<(uint16_t)htons(70);
+	 outPacket<<(uint32_t)htonl(0xFF454545);
+	 outPacket<<(uint16_t)htons(1);
+	 outPacket<<(uint16_t) htons(228);
+	 outPacket<<(uint16_t) htons(sizeof(SMfdPilResearchOutput));
+	 ByteArray array((uint8_t*) mfi_1,sizeof(SMfdPilResearchOutput));
+	 outPacket<<array;
 
-//   for(int i = 0; i<udpSockets.size(); i++)
-//   {
-//       udpSockets[i]->sendTo(buf,sizeBuf);
-//   }
-   
+
+	 out<<(uint32_t) htonl(outPacket.index);
+	 ByteArray arrayPacket((uint8_t*) outPacket.buf,outPacket.index);
+	 out<<arrayPacket;
+
+	 udpSocketIM->sendTo(out.buf,out.index);
+
+
    return true;
 }
 void VisIndicNet::calculate()
 {
    sendMfi_1();
-   sendMfi_2();
+   sendIM_1();
 }
 
 

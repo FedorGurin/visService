@@ -10,9 +10,9 @@
 
 typedef struct TSettingVisIndic_
 {   
-    std::vector<uint16_t> port;
-    std::vector<uint32_t> ipVis;
-    std::vector<std::string> ipStr;
+    uint16_t portMFI1;
+    uint16_t portIM;
+    uint32_t ipVisSKI;
 }TSettingVisIndic;
 #define LEN_BUF_MFI 2048
 
@@ -30,13 +30,15 @@ public:
 
     //! отправка данных в индикацию СИВВО
     bool sendMfi_1();
-    bool sendMfi_2();
+    bool sendIM_1();
 
 private:
     //! указатель на кинематику
     TKinematicAircraft *kin;
     TSettingVisIndic    set;
-    std::vector<UdpSocket *> udpSockets;
+    UdpSocket * udpSocketMFI;
+    UdpSocket * udpSocketIM;
+
     uint8_t             buf1[LEN_BUF_MFI];
     uint16_t            sizeBuf1;
     uint8_t             buf2[LEN_BUF_MFI];
